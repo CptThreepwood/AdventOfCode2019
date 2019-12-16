@@ -125,15 +125,15 @@ main = do
     input <- readFile "input_3.txt"
 
     -- Tests 1
-    print $ manhattan2Closest "R8,U5,L5,D3\nU7,R6,D4,L4" == 6
-    print $ manhattan2Closest "R75,D30,R83,U83,L12,D49,R71,U7,L72\nU62,R66,U55,R34,D71,R55,D58,R83" == 159
-    print $ manhattan2Closest "R98,U47,R26,D63,R33,U87,L62,D20,R33,U53,R51\nU98,R91,D20,R16,D67,R40,U7,R15,U6,R7" == 135
+    -- print $ manhattan2Closest "R8,U5,L5,D3\nU7,R6,D4,L4" == 6
+    -- print $ manhattan2Closest "R75,D30,R83,U83,L12,D49,R71,U7,L72\nU62,R66,U55,R34,D71,R55,D58,R83" == 159
+    -- print $ manhattan2Closest "R98,U47,R26,D63,R33,U87,L62,D20,R33,U53,R51\nU98,R91,D20,R16,D67,R40,U7,R15,U6,R7" == 135
     -- Answer 1
     print $ manhattan2Closest input
 
     -- Tests 2
-    print $ distance2Closest "R8,U5,L5,D3\nU7,R6,D4,L4" == 30
-    print $ distance2Closest "R75,D30,R83,U83,L12,D49,R71,U7,L72\nU62,R66,U55,R34,D71,R55,D58,R83" == 610
-    print $ distance2Closest "R98,U47,R26,D63,R33,U87,L62,D20,R33,U53,R51\nU98,R91,D20,R16,D67,R40,U7,R15,U6,R7" == 410
+    -- print $ distance2Closest "R8,U5,L5,D3\nU7,R6,D4,L4" == 30
+    -- print $ distance2Closest "R75,D30,R83,U83,L12,D49,R71,U7,L72\nU62,R66,U55,R34,D71,R55,D58,R83" == 610
+    -- print $ distance2Closest "R98,U47,R26,D63,R33,U87,L62,D20,R33,U53,R51\nU98,R91,D20,R16,D67,R40,U7,R15,U6,R7" == 410
     -- Answer 2
     print $ distance2Closest input
