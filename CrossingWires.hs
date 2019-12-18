@@ -85,9 +85,8 @@ input2Path :: [Char] -> [[Char]]
 input2Path input = splitOn "," input
 
 tuplify2 :: [a] -> (a, a)
-tuplify2 [x, y, _] = (x, y)
-tuplify2 [x, y] = (x, y)
-tuplify2 [x] = error "Insufficient Paths"
+tuplify2 (x:y:_) = (x, y)
+tuplify2 (x:[]) = error "Insufficient Paths"
 tuplify2 [] = error "Insufficient Paths"
 
 mapPair :: (a -> b) -> (a, a) -> (b, b)
