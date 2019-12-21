@@ -1,7 +1,9 @@
 import qualified Data.Vector as V
 import Data.List.Split
 
-apply :: (Int -> Int -> Int) -> Int -> V.Vector Int -> V.Vector Int
+type State = V.Vector Int
+
+apply :: (Int -> Int -> Int) -> Int -> State -> State
 apply f addr state  =
     let pos1 = state V.! (addr + 1)
         pos2 = state V.! (addr + 2)
@@ -9,7 +11,10 @@ apply f addr state  =
         total = f (state V.! pos1) (state V.! pos2)
     in V.update state $ V.fromList [(pos3, total)]
 
-process :: Int -> V.Vector Int -> V.Vector Int
+read :: Int -> State -> (Int, Int, State)
+read addr state = (state V.! addr, addr+1, state)
+
+process :: Int -> State -> State
 process addr state
     | code == 1 = process next (apply (+) addr state) 
     | code == 2 = process next (apply (*) addr state)
@@ -18,10 +23,10 @@ process addr state
     where code = state V.! addr
           next = (addr + 4)
 
-start :: V.Vector Int -> Int
+start :: State -> Int
 start state = (process 0 state) V.! 0
 
-compile :: V.Vector Int -> ((Int, Int) -> Int)
+compile :: State -> ((Int, Int) -> Int)
 compile program = start . (V.update program) . vectorizeArgs
 
 vectorizeArgs :: (Int, Int) -> V.Vector (Int, Int)
@@ -29,7 +34,7 @@ vectorizeArgs args =
     let (x, y) = args
     in V.fromList [(1, x), (2, y)]
 
-string2State :: String -> V.Vector Int
+string2State :: String -> State
 string2State content = V.fromList . map read . splitOn "," $ content
 
 main = do
