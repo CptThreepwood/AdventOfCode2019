@@ -36,15 +36,16 @@ main = do
     -- print $ (meetsCriteria . tuplise $ "223450") == False
     -- print $ (meetsCriteria . tuplise $ "123789") == False
     -- Answer 1
-    -- print $ length . validCodes $ [168630..718098]
+    print $ length . validCodes $ [168630..718098]
     -- Test 2
-    print $ (meetsHarsherCriteria $ "122345") == True
-    print $ (meetsHarsherCriteria $ "111123") == False
-    print $ (meetsHarsherCriteria $ "135679") == False
-    print $ (meetsHarsherCriteria $ "111111") == False
-    print $ (meetsHarsherCriteria $ "223450") == False
-    print $ (meetsHarsherCriteria $ "123789") == False
-    print $ (meetsHarsherCriteria $ "112233") == True
-    print $ (meetsHarsherCriteria $ "123444") == False
-    print $ (meetsHarsherCriteria $ "111122") == True
+    -- print $ (meetsHarsherCriteria $ "122345") == True
+    -- print $ (meetsHarsherCriteria $ "111123") == False
+    -- print $ (meetsHarsherCriteria $ "135679") == False
+    -- print $ (meetsHarsherCriteria $ "111111") == False
+    -- print $ (meetsHarsherCriteria $ "223450") == False
+    -- print $ (meetsHarsherCriteria $ "123789") == False
+    -- print $ (meetsHarsherCriteria $ "112233") == True
+    -- print $ (meetsHarsherCriteria $ "123444") == False
+    -- print $ (meetsHarsherCriteria $ "111122") == True
     -- Answer 2
+    print $ length $ filter (meetsHarsherCriteria . show) [168630..718098]
