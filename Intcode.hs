@@ -11,9 +11,6 @@ apply f addr state  =
         total = f (state V.! pos1) (state V.! pos2)
     in V.update state $ V.fromList [(pos3, total)]
 
-read :: Int -> State -> (Int, Int, State)
-read addr state = (state V.! addr, addr+1, state)
-
 process :: Int -> State -> State
 process addr state
     | code == 1 = process next (apply (+) addr state) 
