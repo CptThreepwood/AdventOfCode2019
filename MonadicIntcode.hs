@@ -5,45 +5,86 @@ type Location = Int
 type Tape = V.Vector Int
 data Machine = Machine {addr :: Location, tape :: Tape} deriving Show
 
-readTape :: State Machine Int
-readTape = state $ \s -> ((tape s) V.! (addr s), Machine ((addr s) + 1) (tape s))
+readNext :: State Machine Int
+readNext = state $ \s -> (readTape (tape s) (addr s), Machine ((addr s) + 1) (tape s))
 
-skipTo :: Int -> State Machine ()
+skipTo :: Location -> State Machine ()
 skipTo loc = state $ \s -> ((), Machine loc (tape s))
 
-updateTape :: Int -> Int -> Tape -> Tape
+readTape :: Tape -> Location -> Int
+readTape tape loc = tape V.! loc
+
+readAt :: Location -> State Machine Int
+readAt loc = state $ \s -> (readTape (tape s) loc, s)
+
+updateTape :: Location -> Int -> Tape -> Tape
 updateTape loc value tape = V.update tape $ V.fromList [(loc, value)]
 
-write :: Int -> Int -> State Machine ()
-write loc value = state $ \s -> ((), Machine (addr s) (updateTape loc value (tape s)))
+writeTo :: Location -> Int -> State Machine ()
+writeTo loc value = state $ \s -> ((), Machine (addr s) (updateTape loc value (tape s)))
 
--- apply :: (Int -> Int -> Int) -> Int -> State -> State
--- apply f addr state  =
---     let pos1 = state V.! (addr + 1)
---         pos2 = state V.! (addr + 2)
---         pos3 = state V.! (addr + 3)
---         total = f (state V.! pos1) (state V.! pos2)
---     in V.update state $ V.fromList [(pos3, total)]
+parseOpcode :: Int -> [Int]
+parseOpcode code
+    | length codeS == 1 = [code]
+    | otherwise = [read x | x <- codes]
+    where codeS = show code
+          x:y:xs = reverse codeS
+          codes = [y,x]:[[z] | z <- xs]
 
-add :: State Machine ()
-add = do
-    x <- readTape
-    y <- readTape
-    z <- readTape
-    write z (x + y)
+getParam :: Int -> Int -> State Machine Int
+getParam mode code
+    | mode == 1 = return code
+    | mode == 0 = readAt code
+    | otherwise = return (-1) -- "Invalid Mode: " ++ show mode
 
--- process :: State Machine
--- process = do
---     code <- readTape
---     case code of
---         1 -> 
---         99 -> return
+-- evalOp :: State Machine (Int, Int, Int)
+-- evalOp = do
+--     opcode <- readNext
+--     let (op, modes) = parseOpcode(opcode)
+--     case op of
+--         1 -> add modes
+--         2 -> mult modes
+--         3 -> input modes
+--         4 -> output modes
+--         -- 99 -> end
+--         otherwise -> output []
 
-        
--- process = State $ \s -> 
---     | code == 1 = process next (apply (+) addr state) 
---     | code == 2 = process next (apply (*) addr state)
---     | code == 99 = state
---     | otherwise = error $ "Unknown OpCode: " ++ show code
---     where code = state V.! addr
---             next = (addr + 4)
+rpad :: [Int] -> Int -> [Int]
+rpad list len = take len $ list ++ repeat 0
+
+add :: [Int] -> State Machine ()
+add params = do
+    xp <- readNext
+    yp <- readNext
+    saveParam <- readNext
+    let padded = rpad params 3
+    x <- getParam (padded !! 0) xp
+    y <- getParam (padded !! 1) yp
+    save <- getParam (padded !! 2) saveParam
+    writeTo save (x + y)
+
+mult :: [Int] -> State Machine ()
+mult params = do
+    xp <- readNext
+    yp <- readNext
+    saveParam <- readNext
+    let padded = rpad params 3
+    x <- getParam (padded !! 0) xp
+    y <- getParam (padded !! 1) yp
+    save <- getParam (padded !! 2) saveParam
+    writeTo save (x * y)
+
+-- input :: [Int] -> State Machine ()
+-- input params = do
+--     saveParam <- readNext
+--     let padded = rpad params 1
+--     save <- getParam (padded !! 0) saveParam
+--     i <- getLine
+--     writeTo save i
+
+-- output :: [Int] -> IO ()
+-- output params = do
+--     outParam <- readNext
+--     let padded = rpad params 1
+--     out <- getParam (padded !! 0) outParam
+--     print $ show out
