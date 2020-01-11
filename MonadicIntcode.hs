@@ -5,23 +5,39 @@ type Location = Int
 type Tape = V.Vector Int
 data Machine = Machine {addr :: Location, tape :: Tape} deriving Show
 
-readNext :: State Machine Int
-readNext = state $ \s -> (readTape (tape s) (addr s), Machine ((addr s) + 1) (tape s))
+type Intcode = StateT Machine IO
 
-skipTo :: Location -> State Machine ()
-skipTo loc = state $ \s -> ((), Machine loc (tape s))
+readNext :: Intcode Int
+readNext = do
+    s <- get
+    let current = readTape (addr s) (tape s)
+    put $ s {addr = addr s + 1}
+    return current
 
-readTape :: Tape -> Location -> Int
-readTape tape loc = tape V.! loc
+skipTo :: Location -> Intcode ()
+skipTo loc = modify $ \s -> s {addr = loc}
 
-readAt :: Location -> State Machine Int
-readAt loc = state $ \s -> (readTape (tape s) loc, s)
+readTape :: Location -> Tape -> Int
+readTape = flip (V.!)
+
+readAt :: Location -> Intcode Int
+readAt loc = gets $ readTape loc . tape
 
 updateTape :: Location -> Int -> Tape -> Tape
 updateTape loc value tape = V.update tape $ V.fromList [(loc, value)]
 
-writeTo :: Location -> Int -> State Machine ()
-writeTo loc value = state $ \s -> ((), Machine (addr s) (updateTape loc value (tape s)))
+writeTo :: Location -> Int -> Intcode ()
+writeTo loc value = modify $ \s -> s {tape = updateTape loc value (tape s)}
+
+type Param = Int
+
+data Instruction = Unknown
+    | Add Param Param Param
+    | Mult Param Param Param
+    | Read Param
+    | Write Param
+    | Halt
+    deriving Show
 
 parseOpcode :: Int -> [Int]
 parseOpcode code
@@ -31,7 +47,7 @@ parseOpcode code
           x:y:xs = reverse codeS
           codes = [y,x]:[[z] | z <- xs]
 
-getParam :: Int -> Int -> State Machine Int
+getParam :: Int -> Int -> Intcode Int
 getParam mode code
     | mode == 1 = return code
     | mode == 0 = readAt code
@@ -52,7 +68,7 @@ getParam mode code
 rpad :: [Int] -> Int -> [Int]
 rpad list len = take len $ list ++ repeat 0
 
-add :: [Int] -> State Machine ()
+add :: [Int] -> Intcode ()
 add params = do
     xp <- readNext
     yp <- readNext
@@ -63,7 +79,7 @@ add params = do
     save <- getParam (padded !! 2) saveParam
     writeTo save (x + y)
 
-mult :: [Int] -> State Machine ()
+mult :: [Int] -> Intcode ()
 mult params = do
     xp <- readNext
     yp <- readNext
