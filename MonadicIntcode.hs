@@ -39,13 +39,17 @@ data Instruction = Unknown
     | Halt
     deriving Show
 
-parseOpcode :: Int -> [Int]
+parseOpcode :: Int -> Instruction
 parseOpcode code
-    | length codeS == 1 = [code]
-    | otherwise = [read x | x <- codes]
-    where codeS = show code
-          x:y:xs = reverse codeS
-          codes = [y,x]:[[z] | z <- xs]
+    | op == 1 = let [x, y, z] = take 3 params in Add x y z
+    | op == 2 = let [x, y, z] = take 3 params in Mult x y z
+    | op == 3 = let [x] = take 1 params in Read x
+    | op == 4 = let [x] = take 1 params in Write x
+    | op == 99 = Halt
+    | otherwise = Unknown
+    where x:y:xs = reverse $ "0" ++ show code
+          op = read [y,x]
+          params = [read [z] | z <- xs] ++ repeat 0
 
 getParam :: Int -> Int -> Intcode Int
 getParam mode code
