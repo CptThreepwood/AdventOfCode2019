@@ -51,48 +51,37 @@ parseOpcode code
           op = read [y,x]
           params = [read [z] | z <- xs] ++ repeat 0
 
-getParam :: Int -> Int -> Intcode Int
-getParam mode code
-    | mode == 1 = return code
-    | mode == 0 = readAt code
-    | otherwise = return (-1) -- "Invalid Mode: " ++ show mode
+getParam :: Int -> Intcode Int
+getParam mode = do
+    x <- readNext
+    case mode of
+        1 -> return x
+        0 -> readAt x
+        otherwise -> return (-1) -- "Invalid Mode: " ++ show mode
 
--- evalOp :: State Machine (Int, Int, Int)
+-- evalOp :: Intcode ()
 -- evalOp = do
 --     opcode <- readNext
---     let (op, modes) = parseOpcode(opcode)
+--     let op = parseOpcode(opcode)
 --     case op of
---         1 -> add modes
---         2 -> mult modes
---         3 -> input modes
---         4 -> output modes
+--         Add x y z -> add x y z
+--         Mult x y z -> mult x y z
+--         Read x -> input x
+--         Write x -> output x
 --         -- 99 -> end
 --         otherwise -> output []
 
-rpad :: [Int] -> Int -> [Int]
-rpad list len = take len $ list ++ repeat 0
+add :: Int -> Int -> Int -> Intcode ()
+add px py pz = do
+    tot <- (+) <$> getParam px <*> getParam py
+    save <- getParam pz
+    writeTo save tot
 
-add :: [Int] -> Intcode ()
-add params = do
-    xp <- readNext
-    yp <- readNext
-    saveParam <- readNext
-    let padded = rpad params 3
-    x <- getParam (padded !! 0) xp
-    y <- getParam (padded !! 1) yp
-    save <- getParam (padded !! 2) saveParam
-    writeTo save (x + y)
-
-mult :: [Int] -> Intcode ()
-mult params = do
-    xp <- readNext
-    yp <- readNext
-    saveParam <- readNext
-    let padded = rpad params 3
-    x <- getParam (padded !! 0) xp
-    y <- getParam (padded !! 1) yp
-    save <- getParam (padded !! 2) saveParam
-    writeTo save (x * y)
+mult :: Int -> Int -> Int -> Intcode ()
+mult px py pz = do
+    tot <- (*) <$> getParam px <*> getParam py
+    save <- getParam pz
+    writeTo save tot
 
 -- input :: [Int] -> State Machine ()
 -- input params = do
