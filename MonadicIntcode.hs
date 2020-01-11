@@ -7,6 +7,9 @@ data Machine = Machine {addr :: Location, tape :: Tape} deriving Show
 
 type Intcode = StateT Machine IO
 
+io :: IO a -> StateT Machine IO a
+io = liftIO
+
 readNext :: Intcode Int
 readNext = do
     s <- get
@@ -83,17 +86,14 @@ mult px py pz = do
     save <- getParam pz
     writeTo save tot
 
--- input :: [Int] -> State Machine ()
--- input params = do
---     saveParam <- readNext
---     let padded = rpad params 1
---     save <- getParam (padded !! 0) saveParam
---     i <- getLine
---     writeTo save i
+input :: Int -> Intcode ()
+input px = do
+    save <- getParam px
+    i <- io $ getLine
+    writeTo save $ read i
 
--- output :: [Int] -> IO ()
--- output params = do
---     outParam <- readNext
---     let padded = rpad params 1
---     out <- getParam (padded !! 0) outParam
---     print $ show out
+output :: Int -> Intcode ()
+output px = do
+    out <- getParam px
+    io $ print $ show out
+    return ()
