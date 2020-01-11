@@ -62,17 +62,17 @@ getParam mode = do
         0 -> readAt x
         otherwise -> return (-1) -- "Invalid Mode: " ++ show mode
 
--- evalOp :: Intcode ()
--- evalOp = do
---     opcode <- readNext
---     let op = parseOpcode(opcode)
---     case op of
---         Add x y z -> add x y z
---         Mult x y z -> mult x y z
---         Read x -> input x
---         Write x -> output x
---         -- 99 -> end
---         otherwise -> output []
+evalOp :: Intcode ()
+evalOp = do
+    opcode <- readNext
+    let op = parseOpcode(opcode)
+    case op of
+        Add x y z -> add x y z
+        Mult x y z -> mult x y z
+        Read x -> input x
+        Write x -> output x
+        -- 99 -> end
+        otherwise -> output (-1)
 
 add :: Int -> Int -> Int -> Intcode ()
 add px py pz = do
