@@ -80,7 +80,7 @@ evalNext = do
         Halt -> return 1
         Unknown -> return (-1)
 
-getParam :: Int -> Intcode Int
+getParam :: Param -> Intcode Int
 getParam mode = do
     x <- readNext
     case mode of
@@ -88,13 +88,13 @@ getParam mode = do
         0 -> readAt x
         otherwise -> return (-1) -- "Invalid Mode: " ++ show mode
 
-add :: Int -> Int -> Intcode ()
+add :: Param -> Param -> Intcode ()
 add px py = do
     tot <- (+) <$> getParam px <*> getParam py
     save <- readNext
     writeTo save tot
 
-mult :: Int -> Int -> Intcode ()
+mult :: Param -> Param -> Intcode ()
 mult px py = do
     tot <- (*) <$> getParam px <*> getParam py
     save <- readNext
@@ -106,7 +106,7 @@ input = do
     i <- io $ getLine
     writeTo save $ read i
 
-output :: Int -> Intcode ()
+output :: Param -> Intcode ()
 output x = do
     out <- getParam x
     io $ print $ show out
