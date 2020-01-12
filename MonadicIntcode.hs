@@ -32,27 +32,39 @@ updateTape loc value tape = V.update tape $ V.fromList [(loc, value)]
 writeTo :: Location -> Int -> Intcode ()
 writeTo loc value = modify $ \s -> s {tape = updateTape loc value (tape s)}
 
+-- Parse Tape Instructions and Execute
 type Param = Int
-
 data Instruction = Unknown
-    | Add Param Param Param
-    | Mult Param Param Param
-    | Read Param
+    | Add Param Param
+    | Mult Param Param
+    | Read
     | Write Param
     | Halt
     deriving Show
 
 parseOpcode :: Int -> Instruction
 parseOpcode code
-    | op == 1 = let [x, y, z] = take 3 params in Add x y z
-    | op == 2 = let [x, y, z] = take 3 params in Mult x y z
-    | op == 3 = let [x] = take 1 params in Read x
+    | op == 1 = let [x, y] = take 2 params in Add x y
+    | op == 2 = let [x, y] = take 2 params in Mult x y
+    | op == 3 = Read
     | op == 4 = let [x] = take 1 params in Write x
     | op == 99 = Halt
     | otherwise = Unknown
     where x:y:xs = reverse $ "0" ++ show code
           op = read [y,x]
           params = [read [z] | z <- xs] ++ repeat 0
+
+evalNext :: Intcode Int
+evalNext = do
+    opcode <- readNext
+    let op = parseOpcode(opcode)
+    case op of
+        Add x y -> add x y >> return 0
+        Mult x y -> mult x y >> return 0
+        Read -> input >> return 0
+        Write x -> output x >> return 0
+        Halt -> return 1
+        Unknown -> return (-1)
 
 getParam :: Int -> Intcode Int
 getParam mode = do
@@ -62,38 +74,26 @@ getParam mode = do
         0 -> readAt x
         otherwise -> return (-1) -- "Invalid Mode: " ++ show mode
 
-evalOp :: Intcode ()
-evalOp = do
-    opcode <- readNext
-    let op = parseOpcode(opcode)
-    case op of
-        Add x y z -> add x y z
-        Mult x y z -> mult x y z
-        Read x -> input x
-        Write x -> output x
-        -- 99 -> end
-        otherwise -> output (-1)
-
-add :: Int -> Int -> Int -> Intcode ()
-add px py pz = do
+add :: Int -> Int -> Intcode ()
+add px py = do
     tot <- (+) <$> getParam px <*> getParam py
-    save <- getParam pz
+    save <- readNext
     writeTo save tot
 
-mult :: Int -> Int -> Int -> Intcode ()
-mult px py pz = do
+mult :: Int -> Int -> Intcode ()
+mult px py = do
     tot <- (*) <$> getParam px <*> getParam py
-    save <- getParam pz
+    save <- readNext
     writeTo save tot
 
-input :: Int -> Intcode ()
-input px = do
-    save <- getParam px
+input :: Intcode ()
+input = do
+    save <- readNext
     i <- io $ getLine
     writeTo save $ read i
 
 output :: Int -> Intcode ()
-output px = do
-    out <- getParam px
+output x = do
+    out <- getParam x
     io $ print $ show out
     return ()
