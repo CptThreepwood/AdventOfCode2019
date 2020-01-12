@@ -1,15 +1,18 @@
 import Control.Monad.State
 import qualified Data.Vector as V
+import Data.List.Split
 
 type Location = Int
 type Tape = V.Vector Int
 data Machine = Machine {addr :: Location, tape :: Tape} deriving Show
 
+-- Include IO in our Interpreter
 type Intcode = StateT Machine IO
 
 io :: IO a -> StateT Machine IO a
 io = liftIO
 
+-- Low level tape managemet
 readNext :: Intcode Int
 readNext = do
     s <- get
@@ -97,3 +100,18 @@ output x = do
     out <- getParam x
     io $ print $ show out
     return ()
+
+-- Interpreter entrypoint
+interpret :: Intcode ()
+interpret = do
+    status <- evalNext
+    if status == 0 then interpret else return ()
+
+-- Run Code
+
+string2Tape :: String -> Tape
+string2Tape content = V.fromList . map read . splitOn "," $ content
+
+main = do
+    content <- readFile "input_5.txt"
+    runStateT interpret $ Machine 0 $ string2Tape content
