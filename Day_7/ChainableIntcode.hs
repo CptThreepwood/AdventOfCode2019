@@ -1,6 +1,7 @@
 import Control.Monad.State
 import qualified Data.Vector as V
 import Data.List.Split
+import Data.List
 
 type Location = Int
 type Tape = V.Vector Int
@@ -125,7 +126,7 @@ output :: Param -> Intcode ()
 output x = do
     out <- getParam x
     addOutput out
-    io $ print $ show out
+    -- io $ print $ show out
     return ()
 
 jump :: Bool -> Param -> Param -> Intcode ()
@@ -165,5 +166,5 @@ runAmps program settings = foldM (\acc x -> runAmp program (V.fromList [x, acc])
 main = do
     -- content <- readFile "input_5.txt"
     let program = string2Tape "3,15,3,16,1002,16,10,16,1,16,15,15,4,15,99,0,0"
-    a <- runAmps program [4, 3, 2, 1, 0]
-    print $ a
+    a <- mapM (runAmps program) $ Data.List.permutations [0..4]
+    print $ maximum a
