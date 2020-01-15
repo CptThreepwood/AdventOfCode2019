@@ -1,6 +1,7 @@
 import qualified Data.Text as T
 import qualified Data.Tuple as Tup
 import qualified Data.Map.Strict as M
+import qualified Data.List as L
 
 type Label = T.Text
 type Orbit = (Label, Label)
@@ -34,7 +35,9 @@ pathLength :: OrbitGraph -> Label -> Int -> Label -> Label -> Int
 pathLength tree key depth parent node
     | found == True = depth
     | children == [] = 0
-    | otherwise = sum $ map (pathLength tree key nextDepth node) children
+    | otherwise = case (L.find (\x -> x /= 0) $ map (pathLength tree key nextDepth node) children) of
+        Nothing -> 0
+        Just x -> x
     where children = lookupChildren tree parent node
           found = key `elem` children
           nextDepth = depth + 1
